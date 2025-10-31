@@ -2,6 +2,17 @@ from datetime import datetime, timedelta
 
 def analyze_student_profile(student_name, conn):
     c = conn.cursor()
+
+    # ✅ إنشاء جدول الحالات الطارئة إذا لم يكن موجودًا
+    c.execute('''CREATE TABLE IF NOT EXISTS emergency_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        type TEXT,
+        note TEXT,
+        related_student TEXT
+    )''')
+    conn.commit()
+
     today = datetime.today()
     last_30 = (today - timedelta(days=30)).strftime("%Y-%m-%d")
 
@@ -49,4 +60,3 @@ def analyze_student_profile(student_name, conn):
         "risk": risk_level,
         "recommendations": recommendations
     }
-    
