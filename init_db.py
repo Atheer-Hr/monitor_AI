@@ -2,9 +2,8 @@ import sqlite3
 import hashlib
 
 def initialize_database():
-    conn = sqlite3.connect('school_system.db')
+    def run_init_module(conn):
     c = conn.cursor()
-
     # إنشاء الجداول
     c.execute('''CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
