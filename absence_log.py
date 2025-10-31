@@ -180,3 +180,4 @@ def run_absence_module(conn):
             st.subheader("📌 التوصيات التربوية:")
             for rec in profile["recommendations"]:
                 st.markdown(f"- {rec}")
+                
