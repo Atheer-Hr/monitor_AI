@@ -49,3 +49,4 @@ def analyze_student_profile(student_name, conn):
         "risk": risk_level,
         "recommendations": recommendations
     }
+    
