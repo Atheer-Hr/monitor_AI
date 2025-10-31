@@ -19,12 +19,12 @@ def run_absence_module(conn):
     )''')
     conn.commit()
 
+    st.title("📆 وحدة تسجيل الغياب")
+
     # تحميل الطلاب والصفوف
     students = c.execute("SELECT name, class FROM students ORDER BY class, name").fetchall()
     student_dict = {name: cls for name, cls in students}
     student_list = list(student_dict.keys())
-
-    st.title("📆 وحدة تسجيل الغياب")
 
     # ✅ تصنيف الغياب حسب الكلمات المفتاحية
     def classify_absence(reason):
@@ -180,4 +180,3 @@ def run_absence_module(conn):
             st.subheader("📌 التوصيات التربوية:")
             for rec in profile["recommendations"]:
                 st.markdown(f"- {rec}")
-                
