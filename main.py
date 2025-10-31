@@ -55,7 +55,7 @@ elif page == "🚌 سجل الباص":
     from bus_log import run_bus_module
     run_bus_module(conn)
 
-elif page == "🧠  وكيل الموجه التربوي الذكي":
+elif page == "🧠 الوكيل الذكي التربوي":
     from advisor_dashboard import run_advisor_module
     run_advisor_module(conn)
 
