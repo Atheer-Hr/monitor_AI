@@ -1,4 +1,6 @@
 streamlit
 pandas
-twilio
-openpyxl
+python-telegram-bot
+requests
+python-dotenv
+sqlite3
