@@ -3,4 +3,3 @@ pandas
 python-telegram-bot
 requests
 python-dotenv
-sqlite3
