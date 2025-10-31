@@ -3,7 +3,6 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 from absence_report import generate_absence_report
-from sms_sender import send_sms
 from telegram_sender import send_telegram_message
 from advisor_engine import analyze_student_profile
 
