@@ -7,8 +7,7 @@ from sms_sender import send_sms
 from telegram_sender import send_telegram_message
 from advisor_engine import analyze_student_profile
 
-# الاتصال بقاعدة البيانات الموحدة
-conn = sqlite3.connect('school_system.db')
+def run_absence_module(conn):
 c = conn.cursor()
 
 # تحميل الطلاب والصفوف
