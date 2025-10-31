@@ -1,21 +1,19 @@
 import streamlit as st
 import sqlite3
 
-# الاتصال بقاعدة البيانات الموحدة
-conn = sqlite3.connect('school_system.db')
-c = conn.cursor()
+def run_student_module(conn):
+    c = conn.cursor()
 
-# إنشاء جدول الطلاب إذا لم يكن موجودًا
-c.execute('''CREATE TABLE IF NOT EXISTS students (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE,
-    class TEXT,
-    guardian_phone TEXT
-)''')
-conn.commit()
+    # إنشاء جدول الطلاب إذا لم يكن موجودًا
+    c.execute('''CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE,
+        class TEXT,
+        guardian_phone TEXT
+    )''')
+    conn.commit()
 
-st.title("👩‍🎓 إدارة بيانات الطلاب")
-
+    st.title("👩‍🎓 إدارة بيانات الطلاب")
 # ➕ إضافة طالب جديد
 st.subheader("➕ إضافة طالب")
 name = st.text_input("اسم الطالب")
