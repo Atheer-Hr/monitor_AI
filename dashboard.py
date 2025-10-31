@@ -5,9 +5,8 @@ from datetime import datetime
 from utils import hash_password
 
 # الاتصال بقاعدة البيانات
-conn = sqlite3.connect('school_system.db')
-c = conn.cursor()
-
+def run_dashboard_module(conn):
+    c = conn.cursor()
 # إعداد الجلسة
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
