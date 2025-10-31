@@ -164,7 +164,7 @@ def run_dashboard_module(conn):
             st.success("✅ تم توليد التقرير بنجاح")
             st.download_button("⬇️ تحميل تقرير الغياب", data=open("تقرير_الغياب.xlsx", "rb").read(), file_name="تقرير_الغياب.xlsx")
 
-    # ⚠️ التصعيدات الإدارية
+        # ⚠️ التصعيدات الإدارية
     with tabs[7]:
         st.subheader("⚠️ التصعيدات الإدارية")
         escalations = c.execute('''
@@ -178,6 +178,69 @@ def run_dashboard_module(conn):
             for esc in escalations:
                 st.markdown(f"📅 {esc[1]} | 👤 {esc[2]}")
                 st.write(f"{esc[3]}")
-                if st.button(f"📤 إرسال إلى الإدارة - {esc[0]}"):
+                if st.button(f"📤 إرسال إلى الإدارة - تصعيد رقم {esc[0]}"):
                     c.execute("INSERT INTO alerts (student_name, date, source, message) VALUES (?, ?, ?, ?)",
-                              (esc[2], esc[1
+                              (esc[2], esc[1], "إدارة", f"📨 تم إرسال التصعيد رقم {esc[0]} إلى الإدارة"))
+                    conn.commit()
+                    st.success("✅ تم إرسال التصعيد إلى الإدارة")
+                st.markdown("---")
+        else:
+            st.info("لا توجد حالات تصعيد مسجلة حاليًا.")
+            # 🎉 الأنشطة المدرسية
+    with tabs[8]:
+        st.subheader("🎉 الأنشطة المدرسية")
+        activities = c.execute('''
+            SELECT id, date, title, type, location, target_group, description, participants
+            FROM activity_log
+            ORDER BY date DESC
+        ''').fetchall()
+
+        if activities:
+            for a in activities:
+                st.markdown(f"📅 {a[1]} | 🎯 {a[2]} | 🗂️ النوع: {a[3]}")
+                st.markdown(f"📍 الموقع: {a[4]} | 👥 الفئة: {a[5]}")
+                st.write(f"✏️ {a[6]}")
+                if a[7]:
+                    st.markdown(f"👤 المشاركون: {a[7]}")
+
+                if st.button(f"📤 إرسال إلى الإدارة - نشاط رقم {a[0]}"):
+                    alert_msg = f"📨 تقرير نشاط: {a[2]} ({a[3]}) بتاريخ {a[1]} في {a[4]} - تم إرساله للإدارة"
+                    c.execute("INSERT INTO alerts (student_name, date, source, message) VALUES (?, ?, ?, ?)",
+                              ("", a[1], "نشاط إداري", alert_msg))
+                    conn.commit()
+                    st.success("✅ تم إرسال تقرير النشاط إلى الإدارة")
+                st.markdown("---")
+        else:
+            st.info("لا توجد أنشطة مسجلة حتى الآن.")
+
+        # تحليل حسب النوع
+        st.subheader("📊 تحليل الأنشطة حسب النوع")
+        stats = c.execute("SELECT type, COUNT(*) FROM activity_log GROUP BY type").fetchall()
+        if stats:
+            df_stats = pd.DataFrame(stats, columns=["النوع", "عدد الأنشطة"])
+            st.bar_chart(df_stats.set_index("النوع"))
+
+    # 📝 المهام اليومية
+    with tabs[9]:
+        st.subheader("📝 المهام اليومية")
+        tasks = c.execute('''
+            SELECT date, title, assigned_to, status, notes
+            FROM task_log
+            ORDER BY date DESC
+        ''').fetchall()
+
+        if tasks:
+            df = pd.DataFrame(tasks, columns=["التاريخ", "المهمة", "المسؤول", "الحالة", "ملاحظات"])
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("لا توجد مهام مسجلة حتى الآن.")
+
+        # تحليل حسب الحالة
+        st.subheader("📊 تحليل المهام حسب الحالة")
+        stats = c.execute("SELECT status, COUNT(*) FROM task_log GROUP BY status").fetchall()
+        if stats:
+            df_stats = pd.DataFrame(stats, columns=["الحالة", "عدد المهام"])
+            st.bar_chart(df_stats.set_index("الحالة"))
+
+    
+
