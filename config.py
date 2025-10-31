@@ -1,10 +1,8 @@
 import os
 from dotenv import load_dotenv
 
-# تحميل المتغيرات من ملف .env
 load_dotenv()
 
-# إعدادات البوت
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
