@@ -1,13 +1,22 @@
 import requests
+import os
+from dotenv import load_dotenv
 
-# بيانات البوت
-BOT_TOKEN = "8340128767:AAFRvnKcEC45W3As2N3MkRlDIC7-S6rFhDk"
-CHAT_ID = -5072820543  # معرف مجموعة "الموجه الذكي"
+# تحميل المتغيرات من ملف .env
+load_dotenv()
+
+# قراءة البيانات من البيئة
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
 def send_telegram_message(message):
     """
     ترسل رسالة نصية إلى مجموعة Telegram عبر البوت
     """
+    if not BOT_TOKEN or not CHAT_ID:
+        print("❌ لم يتم العثور على بيانات البوت في البيئة")
+        return False
+
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
