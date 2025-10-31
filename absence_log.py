@@ -9,7 +9,7 @@ from advisor_engine import analyze_student_profile
 def run_absence_module(conn):
     c = conn.cursor()
 
-    # ✅ إنشاء جدول الغياب إذا لم يكن موجودًا
+    # ✅ إنشاء الجداول الضرورية
     c.execute('''CREATE TABLE IF NOT EXISTS absence_log (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_name TEXT,
@@ -17,7 +17,17 @@ def run_absence_module(conn):
         class TEXT,
         reason TEXT
     )''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
+        date TEXT,
+        source TEXT,
+        message TEXT
+    )''')
+
     conn.commit()
+
 
     st.title("📆 وحدة تسجيل الغياب")
 
