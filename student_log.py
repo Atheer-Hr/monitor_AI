@@ -5,8 +5,9 @@ from datetime import datetime
 from advisor_engine import analyze_student_profile
 
 # الاتصال بقاعدة البيانات الموحدة
-conn = sqlite3.connect('school_system.db')
-c = conn.cursor()
+
+def run_student_module(conn):
+    c = conn.cursor()
 
 # إنشاء جدول الملاحظات إذا لم يكن موجودًا
 c.execute('''CREATE TABLE IF NOT EXISTS logs (
