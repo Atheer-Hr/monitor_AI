@@ -9,6 +9,16 @@ from advisor_engine import analyze_student_profile
 def run_absence_module(conn):
     c = conn.cursor()
 
+    # ✅ إنشاء جدول الغياب إذا لم يكن موجودًا
+    c.execute('''CREATE TABLE IF NOT EXISTS absence_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
+        date TEXT,
+        class TEXT,
+        reason TEXT
+    )''')
+    conn.commit()
+
     # تحميل الطلاب والصفوف
     students = c.execute("SELECT name, class FROM students ORDER BY class, name").fetchall()
     student_dict = {name: cls for name, cls in students}
