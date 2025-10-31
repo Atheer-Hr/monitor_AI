@@ -4,14 +4,16 @@ def analyze_student_profile(student_name, conn):
     c = conn.cursor()
 
     # ✅ إنشاء جدول الحالات الطارئة إذا لم يكن موجودًا
-    c.execute('''CREATE TABLE IF NOT EXISTS emergency_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    c.execute('''CREATE TABLE IF NOT EXISTS logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
         date TEXT,
-        type TEXT,
+        category TEXT,
         note TEXT,
-        related_student TEXT
+        severity TEXT
     )''')
     conn.commit()
+
 
     today = datetime.today()
     last_30 = (today - timedelta(days=30)).strftime("%Y-%m-%d")
