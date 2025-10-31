@@ -2,9 +2,10 @@ import sqlite3
 import hashlib
 
 def initialize_database():
-    def run_init_module(conn):
+    conn = sqlite3.connect("school_system.db")
     c = conn.cursor()
-    # إنشاء الجداول
+
+    # ✅ إنشاء الجداول
     c.execute('''CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT UNIQUE,
@@ -47,48 +48,39 @@ def initialize_database():
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS inspection_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT,
-    location TEXT,
-    category TEXT,
-    note TEXT,
-    related_student TEXT
-)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    role TEXT
-)''')
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        location TEXT,
+        category TEXT,
+        note TEXT,
+        related_student TEXT
+    )''')
 
-
-# إنشاء جدول المستخدمين
     c.execute('''CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password_hash TEXT,
-    role TEXT
-)''')
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password_hash TEXT,
+        role TEXT
+    )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS activity_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT,
-    title TEXT,
-    type TEXT,
-    location TEXT,
-    target_group TEXT,
-    description TEXT,
-    participants TEXT
-)''')
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        title TEXT,
+        type TEXT,
+        location TEXT,
+        target_group TEXT,
+        description TEXT,
+        participants TEXT
+    )''')
 
-      # ✅ إضافة بيانات تجريبية للطلاب (اختياري)
+    # ✅ إضافة بيانات تجريبية للطلاب (اختياري)
     sample_students = [
         ("محمد", "رابع", "0500000001"),
         ("سارة", "رابع", "0500000002"),
         ("خالد", "خامس", "0500000003")
     ]
-    c.executemany("INSERT INTO students (name, class, guardian_phone) VALUES (?, ?, ?)", sample_students)
-
+    c.executemany("INSERT OR IGNORE INTO students (name, class, guardian_phone) VALUES (?, ?, ?)", sample_students)
 
     conn.commit()
     conn.close()
