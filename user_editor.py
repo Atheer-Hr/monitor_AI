@@ -2,8 +2,8 @@ import streamlit as st
 import sqlite3
 from utils import hash_password
 
-conn = sqlite3.connect('school_system.db')
-c = conn.cursor()
+def run_user__module(conn):
+    c = conn.cursor()
 
 st.title("🛠️ تعديل بيانات المستخدمين")
 
