@@ -71,7 +71,7 @@ def run_absence_module(conn):
         telegram_msg = f"📆 تنبيه: الطالب {student_name} غائب اليوم ({date.strftime('%Y-%m-%d')}). السبب: {reason}. الصف: {class_name}."
         send_telegram_message(telegram_msg)
 
-        # إرسال SMS لولي الأمر
+        # حفظ تنبيه لولي الأمر بدون إرسال SMS
         guardian = c.execute("SELECT guardian_phone FROM students WHERE name = ?", (student_name,)).fetchone()
         guardian_phone = guardian[0] if guardian else "غير مسجل"
 
@@ -79,9 +79,6 @@ def run_absence_module(conn):
         c.execute("INSERT INTO alerts (student_name, date, source, message) VALUES (?, ?, ?, ?)",
                   (student_name, date.strftime("%Y-%m-%d"), "ولي الأمر", parent_alert))
         conn.commit()
-
-        sms_msg = f"📆 غياب الطالب {student_name} بتاريخ {date.strftime('%Y-%m-%d')}. السبب: {reason}. يرجى المتابعة."
-        send_sms(guardian_phone, sms_msg)
 
         st.success("✅ تم تسجيل الغياب والتنبيه والملاحظة وإرسال الإشعارات بنجاح")
 
