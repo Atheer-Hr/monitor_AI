@@ -3,9 +3,8 @@ import sqlite3
 import hashlib
 from utils import hash_password
 
-conn = sqlite3.connect('school_system.db')
-c = conn.cursor()
-
+def run_ user_manager_module(conn):
+    c = conn.cursor()
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
