@@ -3,8 +3,9 @@ import sqlite3
 from advisor_engine import analyze_student_profile
 import pandas as pd
 
-conn = sqlite3.connect("school_system.db")
-c = conn.cursor()
+
+def run_advisor_module(conn):
+    c = conn.cursor()
 
 students = c.execute("SELECT name FROM students ORDER BY name").fetchall()
 student_list = [s[0] for s in students]
