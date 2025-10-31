@@ -3,9 +3,8 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 
-conn = sqlite3.connect('school_system.db')
-c = conn.cursor()
-
+def run_task_module(conn):
+    c = conn.cursor()
 # إنشاء جدول المهام إذا لم يكن موجودًا
 c.execute('''CREATE TABLE IF NOT EXISTS task_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
