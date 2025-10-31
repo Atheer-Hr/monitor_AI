@@ -3,10 +3,10 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 
-# الاتصال بقاعدة البيانات
-conn = sqlite3.connect('school_system.db')
-c = conn.cursor()
 
+def run_activities_module(conn):
+    c = conn.cursor()
+    
 # تحميل أسماء الطلاب
 students = c.execute("SELECT name FROM students ORDER BY name").fetchall()
 student_list = [s[0] for s in students]
