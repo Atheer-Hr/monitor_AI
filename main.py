@@ -48,7 +48,7 @@ elif page == "🆘 الحالات الطارئة":
     run_emergency_module(conn)
 
 elif page == "📘 سجل الملاحظات اليومية":
-    from student_notes import run_notes_module
+    from student_log import run_notes_module
     run_notes_module(conn)
 
 elif page == "🚌 سجل الباص":
@@ -76,8 +76,8 @@ elif page == "👩‍🎓 إدارة بيانات الطلاب":
     run_student_module(conn)
 
 elif page == "👥 إدارة المستخدمين":
-    from user_manager import run_user_module
-    run_user_module(conn)
+    from user_manager import run_user_manager_module
+    run_user_manager_module(conn)
 
 elif page == "📊 لوحة التحكم":
     from dashboard import run_dashboard_module
