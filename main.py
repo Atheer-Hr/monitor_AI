@@ -3,9 +3,6 @@ import sqlite3
 import os
 from init_db import initialize_database
 
-# ✅ إنشاء قاعدة البيانات إذا لم تكن موجودة
-if not os.path.exists("school_system.db"):
-    initialize_database()
 
 # ✅ الاتصال بقاعدة البيانات الموحدة
 conn = sqlite3.connect("school_system.db")
