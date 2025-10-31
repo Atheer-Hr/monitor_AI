@@ -1,20 +1,12 @@
 import requests
-import os
-from dotenv import load_dotenv
-
-# تحميل المتغيرات من ملف .env
-load_dotenv()
-
-# قراءة البيانات من البيئة
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+from config import BOT_TOKEN, CHAT_ID  # المتغيرات جاهزة من config.py
 
 def send_telegram_message(message):
     """
     ترسل رسالة نصية إلى مجموعة Telegram عبر البوت
     """
     if not BOT_TOKEN or not CHAT_ID:
-        print("❌ لم يتم العثور على بيانات البوت في البيئة")
+        print("❌ لم يتم العثور على بيانات البوت في config.py")
         return False
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
