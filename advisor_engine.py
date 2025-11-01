@@ -3,17 +3,33 @@ from datetime import datetime, timedelta
 def analyze_student_profile(student_name, conn):
     c = conn.cursor()
 
-    # ✅ إنشاء جدول الحالات الطارئة إذا لم يكن موجودًا
+    # ✅ إنشاء الجداول الضرورية إذا لم تكن موجودة
+    c.execute('''CREATE TABLE IF NOT EXISTS emergency_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        type TEXT,
+        note TEXT,
+        related_student TEXT
+    )''')
+
     c.execute('''CREATE TABLE IF NOT EXISTS logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_name TEXT,
         date TEXT,
         category TEXT,
         note TEXT,
         severity TEXT
     )''')
-    conn.commit()
 
+    c.execute('''CREATE TABLE IF NOT EXISTS alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
+        date TEXT,
+        source TEXT,
+        message TEXT
+    )''')
+
+    conn.commit()
 
     today = datetime.today()
     last_30 = (today - timedelta(days=30)).strftime("%Y-%m-%d")
