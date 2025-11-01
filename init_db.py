@@ -74,6 +74,17 @@ def initialize_database():
         participants TEXT
     )''')
 
+    c.execute('''CREATE TABLE IF NOT EXISTS attendance_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_name TEXT,
+    date TEXT,
+    class TEXT,
+    stage TEXT,
+    status TEXT,         -- حاضر أو غائب
+    reason TEXT          -- اختياري في حالة الغياب
+    )''')
+
+
     # ✅ إضافة بيانات تجريبية للطلاب (اختياري)
     sample_students = [
         ("محمد", "رابع", "0500000001"),
