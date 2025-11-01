@@ -6,6 +6,7 @@ from advisor_engine import analyze_student_profile
 def run_advisor_module(conn):
     c = conn.cursor()
 
+    # تحميل قائمة الطلاب
     students = c.execute("SELECT name FROM students ORDER BY name").fetchall()
     student_list = [s[0] for s in students]
 
@@ -30,7 +31,7 @@ def run_advisor_module(conn):
         for rec in profile["recommendations"]:
             st.markdown(f"- {rec}")
 
-        # توليد تقرير Excel
+        # 📤 توليد تقرير Excel
         if st.button("📤 تحميل تقرير تربوي"):
             df = pd.DataFrame({
                 "الطالب": [profile["student"]],
