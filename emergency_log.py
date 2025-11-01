@@ -2,12 +2,40 @@ import streamlit as st
 import sqlite3
 from datetime import datetime
 import pandas as pd
-from sms_sender import send_sms
 from telegram_sender import send_telegram_message
 from advisor_engine import analyze_student_profile
 
 def run_emergency_module(conn):
     c = conn.cursor()
+
+    # ✅ إنشاء الجداول الضرورية
+    c.execute('''CREATE TABLE IF NOT EXISTS emergency_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        type TEXT,
+        location TEXT,
+        description TEXT,
+        related_student TEXT
+    )''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
+        date TEXT,
+        source TEXT,
+        message TEXT
+    )''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
+        date TEXT,
+        category TEXT,
+        note TEXT,
+        severity TEXT
+    )''')
+
+    conn.commit()
 
     # تحميل أسماء الطلاب
     students = c.execute("SELECT name FROM students ORDER BY name").fetchall()
@@ -26,16 +54,6 @@ def run_emergency_module(conn):
     submit = st.button("تسجيل الحالة")
 
     if submit:
-        # إنشاء الجدول إذا لم يكن موجودًا
-        c.execute('''CREATE TABLE IF NOT EXISTS emergency_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT,
-            type TEXT,
-            location TEXT,
-            description TEXT,
-            related_student TEXT
-        )''')
-
         # حفظ الحالة
         c.execute("INSERT INTO emergency_log (date, type, location, description, related_student) VALUES (?, ?, ?, ?, ?)",
                   (date.strftime("%Y-%m-%d"), emergency_type, location, description, related_student))
@@ -58,21 +76,6 @@ def run_emergency_module(conn):
             conn.commit()
 
         st.success("✅ تم تسجيل الحالة والتنبيه بنجاح")
-
-        # جلب رقم ولي الأمر
-        guardian = c.execute("SELECT guardian_phone FROM students WHERE name = ?", (related_student,)).fetchone()
-        guardian_phone = guardian[0] if guardian else None
-
-        if guardian_phone:
-            sms_msg = f"🚨 حالة طارئة للطالب {related_student} في {location} بتاريخ {date.strftime('%Y-%m-%d')}. يرجى التواصل مع المدرسة."
-            send_sms(guardian_phone, sms_msg)
-
-            parent_alert = f"📱 إشعار طارئ: الطالب {related_student} تعرض لحالة ({emergency_type}) في {location} بتاريخ {date.strftime('%Y-%m-%d')}. للتواصل: {guardian_phone}"
-            c.execute("INSERT INTO alerts (student_name, date, source, message) VALUES (?, ?, ?, ?)",
-                      (related_student, date.strftime("%Y-%m-%d"), "ولي الأمر", parent_alert))
-            conn.commit()
-
-            send_telegram_message(parent_alert)
 
         # التحقق من عدد الحالات السابقة لنفس الطالب
         if related_student != "غير مرتبط":
