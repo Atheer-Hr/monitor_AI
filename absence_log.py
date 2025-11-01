@@ -26,14 +26,23 @@ def run_absence_module(conn):
         message TEXT
     )''')
 
-    conn.commit()
+    c.execute('''CREATE TABLE IF NOT EXISTS attendance_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
+        date TEXT,
+        class TEXT,
+        stage TEXT,
+        status TEXT,
+        reason TEXT
+    )''')
 
+    conn.commit()
 
     st.title("📆 وحدة تسجيل الغياب")
 
     # تحميل الطلاب والصفوف
-    students = c.execute("SELECT name, class FROM students ORDER BY class, name").fetchall()
-    student_dict = {name: cls for name, cls in students}
+    students = c.execute("SELECT name, class, stage FROM students ORDER BY stage, class, name").fetchall()
+    student_dict = {name: {"class": cls, "stage": stage} for name, cls, stage in students}
     student_list = list(student_dict.keys())
 
     # ✅ تصنيف الغياب حسب الكلمات المفتاحية
@@ -46,42 +55,36 @@ def run_absence_module(conn):
         else:
             return 'غير محدد'
 
-    # ✅ توليد تنبيه تلقائي
     def generate_absence_alert(student_name, date, reason):
         return f"🔔 الطالب {student_name} غائب بتاريخ {date}، السبب: {reason}"
 
-    # ➕ تسجيل غياب طالب
-    st.subheader("➕ تسجيل غياب طالب")
+    # ➕ تسجيل غياب يدوي لطالب
+    st.subheader("➕ تسجيل غياب يدوي لطالب")
     student_name = st.selectbox("اختر اسم الطالب", student_list)
     date = st.date_input("تاريخ الغياب", value=datetime.today())
     reason = st.text_area("سبب الغياب")
     submit = st.button("تسجيل الغياب")
 
     if submit and student_name:
-        class_name = student_dict[student_name]
+        class_name = student_dict[student_name]["class"]
         absence_type = classify_absence(reason)
 
-        # حفظ الغياب
         c.execute("INSERT INTO absence_log (student_name, date, class, reason) VALUES (?, ?, ?, ?)",
                   (student_name, date.strftime("%Y-%m-%d"), class_name, reason))
         conn.commit()
 
-        # حفظ التنبيه
         alert_msg = generate_absence_alert(student_name, date.strftime("%Y-%m-%d"), reason)
         c.execute("INSERT INTO alerts (student_name, date, source, message) VALUES (?, ?, ?, ?)",
                   (student_name, date.strftime("%Y-%m-%d"), "غياب", alert_msg))
         conn.commit()
 
-        # حفظ ملاحظة في سجل الطالب
         c.execute("INSERT INTO logs (student_name, date, category, note, severity) VALUES (?, ?, ?, ?, ?)",
                   (student_name, date.strftime("%Y-%m-%d"), "غياب", reason, "تحتاج متابعة"))
         conn.commit()
 
-        # إرسال تنبيه Telegram
         telegram_msg = f"📆 تنبيه: الطالب {student_name} غائب اليوم ({date.strftime('%Y-%m-%d')}). السبب: {reason}. الصف: {class_name}."
         send_telegram_message(telegram_msg)
 
-        # حفظ تنبيه لولي الأمر بدون إرسال SMS
         guardian = c.execute("SELECT guardian_phone FROM students WHERE name = ?", (student_name,)).fetchone()
         guardian_phone = guardian[0] if guardian else "غير مسجل"
 
@@ -92,9 +95,36 @@ def run_absence_module(conn):
 
         st.success("✅ تم تسجيل الغياب والتنبيه والملاحظة وإرسال الإشعارات بنجاح")
 
+    # ✅ تسجيل الحضور الجماعي حسب المرحلة والفصل
+    st.subheader("🧾 تسجيل الحضور الجماعي")
+    stages = sorted(set([info["stage"] for info in student_dict.values()]))
+    selected_stage = st.selectbox("اختر المرحلة", stages)
+    classes = sorted(set([info["class"] for info in student_dict.values() if info["stage"] == selected_stage]))
+    selected_class = st.selectbox("اختر الصف", classes, key="attendance_class")
+    attendance_date = st.date_input("تاريخ الحضور", key="attendance_date")
+
+    filtered_students = [name for name, info in student_dict.items()
+                         if info["class"] == selected_class and info["stage"] == selected_stage]
+
+    attendance_data = {}
+    for name in filtered_students:
+        col1, col2 = st.columns([2, 3])
+        with col1:
+            status = st.selectbox(f"{name}", ["✅ حاضر", "❌ غائب"], key=f"status_{name}")
+        with col2:
+            reason = st.text_input(f"سبب الغياب ({name})", key=f"reason_{name}") if status == "❌ غائب" else ""
+        attendance_data[name] = {"status": status, "reason": reason}
+
+    if st.button("📌 تسجيل الحضور الجماعي"):
+        for name, data in attendance_data.items():
+            c.execute("INSERT INTO attendance_log (student_name, date, class, stage, status, reason) VALUES (?, ?, ?, ?, ?, ?)",
+                      (name, attendance_date.strftime("%Y-%m-%d"), selected_class, selected_stage, data["status"], data["reason"]))
+        conn.commit()
+        st.success("✅ تم تسجيل الحضور الجماعي بنجاح")
+
     # 📋 عرض الغياب حسب الصف والتاريخ
     st.subheader("📋 عرض الغياب حسب الصف والتاريخ")
-    selected_class = st.selectbox("اختر الصف", sorted(set(student_dict.values())))
+    selected_class = st.selectbox("اختر الصف", sorted(set(student_dict[name]["class"] for name in student_list)))
     selected_date = st.date_input("اختر التاريخ لعرض الغياب")
 
     query = '''SELECT student_name, reason FROM absence_log WHERE class = ? AND date = ?'''
@@ -113,7 +143,7 @@ def run_absence_module(conn):
         st.markdown(f"📅 {s[0]} | 👥 عدد الغياب: {s[1]}")
 
     # 📤 توليد تقرير Excel
-    st.subheader("📤 توليد تقرير Excel")
+    st.subheader("📤 تحميل تقرير الغياب")
     if st.button("تحميل تقرير الغياب"):
         path = generate_absence_report()
         with open(path, "rb") as f:
@@ -121,7 +151,7 @@ def run_absence_module(conn):
 
     # 📋 جدول الغياب حسب الصف والتاريخ
     st.subheader("📋 جدول الغياب حسب الصف والتاريخ")
-    admin_class = st.selectbox("اختر الصف لعرض الجدول", sorted(set(student_dict.values())), key="admin_class")
+    admin_class = st.selectbox("اختر الصف لعرض الجدول", sorted(set(student_dict[name]["class"] for name in student_list)), key="admin_class")
     admin_date = st.date_input("اختر التاريخ", key="admin_date")
 
     admin_query = '''
@@ -148,45 +178,3 @@ def run_absence_module(conn):
     FROM absence_log
     WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
     GROUP BY class
-    ORDER BY total DESC
-    '''
-    month_str = f"{selected_month:02d}"
-    year_str = str(selected_year)
-    monthly_stats = c.execute(monthly_query, (month_str, year_str)).fetchall()
-
-    if monthly_stats:
-        df_month = pd.DataFrame(monthly_stats, columns=["الصف", "عدد حالات الغياب"])
-        st.bar_chart(df_month.set_index("الصف"))
-    else:
-        st.info("لا توجد بيانات غياب لهذا الشهر.")
-
-    # 📣 تنبيهات موجهة لأولياء الأمور
-    st.subheader("📣 تنبيهات موجهة لأولياء الأمور")
-    alerts_query = '''
-    SELECT date, student_name, message
-    FROM alerts
-    WHERE source = "ولي الأمر"
-    ORDER BY date DESC
-    '''
-    alerts = c.execute(alerts_query).fetchall()
-
-    for a in alerts:
-        st.markdown(f"📅 {a[0]} | 👤 {a[1]}")
-        st.write(f"{a[2]}")
-        st.markdown("---")
-
-    # 🧠 التحليل التربوي
-    if st.button("🧠 عرض التحليل التربوي لهذا الطالب"):
-        profile = analyze_student_profile(student_name, conn)
-        with st.expander("📊 التحليل التربوي"):
-            st.markdown(f"🔍 درجة الخطورة: **{profile['risk']}**")
-            st.markdown(f"📆 عدد حالات الغياب (آخر 30 يوم): {profile['absence']}")
-            st.markdown("🆘 الحالات الطارئة:")
-            for k, v in profile["emergencies"].items():
-                st.markdown(f"- {k}: {v}")
-            st.markdown("📘 تصنيف الملاحظات:")
-            for k, v in profile["notes"].items():
-                st.markdown(f"- {k}: {v}")
-            st.subheader("📌 التوصيات التربوية:")
-            for rec in profile["recommendations"]:
-                st.markdown(f"- {rec}")
