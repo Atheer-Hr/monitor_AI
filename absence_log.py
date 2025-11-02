@@ -168,12 +168,12 @@ def run_absence_module(conn):
     else:
         st.info("لا توجد حالات غياب مسجلة لهذا اليوم.")
 
-    # 📊 تحليل شهري للغياب
+        # 📊 تحليل شهري للغياب
     st.subheader("📊 تحليل شهري للغياب")
     selected_month = st.selectbox("اختر شهرًا", list(range(1, 13)))
     selected_year = st.selectbox("اختر السنة", list(range(2023, datetime.today().year + 1)))
 
-        monthly_query = '''
+    monthly_query = '''
     SELECT class, COUNT(*) as total
     FROM absence_log
     WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
@@ -189,4 +189,35 @@ def run_absence_module(conn):
         st.bar_chart(df_month.set_index("الصف"))
     else:
         st.info("لا توجد بيانات غياب لهذا الشهر.")
+
+    # 📣 تنبيهات موجهة لأولياء الأمور
+    st.subheader("📣 تنبيهات موجهة لأولياء الأمور")
+    alerts_query = '''
+    SELECT date, student_name, message
+    FROM alerts
+    WHERE source = "ولي الأمر"
+    ORDER BY date DESC
+    '''
+    alerts = c.execute(alerts_query).fetchall()
+
+    for a in alerts:
+        st.markdown(f"📅 {a[0]} | 👤 {a[1]}")
+        st.write(f"{a[2]}")
+        st.markdown("---")
+
+    # 🧠 التحليل التربوي
+    if st.button("🧠 عرض التحليل التربوي لهذا الطالب"):
+        profile = analyze_student_profile(student_name, conn)
+        with st.expander("📊 التحليل التربوي"):
+            st.markdown(f"🔍 درجة الخطورة: **{profile['risk']}**")
+            st.markdown(f"📆 عدد حالات الغياب (آخر 30 يوم): {profile['absence']}")
+            st.markdown("🆘 الحالات الطارئة:")
+            for k, v in profile["emergencies"].items():
+                st.markdown(f"- {k}: {v}")
+            st.markdown("📘 تصنيف الملاحظات:")
+            for k, v in profile["notes"].items():
+                st.markdown(f"- {k}: {v}")
+            st.subheader("📌 التوصيات التربوية:")
+            for rec in profile["recommendations"]:
+                st.markdown(f"- {rec}")
 
