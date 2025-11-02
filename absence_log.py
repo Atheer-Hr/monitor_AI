@@ -40,7 +40,7 @@ def run_absence_module(conn):
 
     st.title("📆 وحدة تسجيل الغياب")
 
-    # تحميل الطلاب والصفوف
+    # تحميل الطلاب والصفوف من جدول students
     students = c.execute("SELECT name, class, stage FROM students ORDER BY stage, class, name").fetchall()
     student_dict = {name: {"class": cls, "stage": stage} for name, cls, stage in students}
     student_list = list(student_dict.keys())
@@ -124,7 +124,7 @@ def run_absence_module(conn):
 
     # 📋 عرض الغياب حسب الصف والتاريخ
     st.subheader("📋 عرض الغياب حسب الصف والتاريخ")
-    selected_class = st.selectbox("اختر الصف", sorted(set(student_dict[name]["class"] for name in student_list)))
+    selected_class = st.selectbox("اختر الصف", sorted(set(info["class"] for info in student_dict.values())))
     selected_date = st.date_input("اختر التاريخ لعرض الغياب")
 
     query = '''SELECT student_name, reason FROM absence_log WHERE class = ? AND date = ?'''
@@ -151,7 +151,7 @@ def run_absence_module(conn):
 
     # 📋 جدول الغياب حسب الصف والتاريخ
     st.subheader("📋 جدول الغياب حسب الصف والتاريخ")
-    admin_class = st.selectbox("اختر الصف لعرض الجدول", sorted(set(student_dict[name]["class"] for name in student_list)), key="admin_class")
+    admin_class = st.selectbox("اختر الصف لعرض الجدول", sorted(set(info["class"] for info in student_dict.values())), key="admin_class")
     admin_date = st.date_input("اختر التاريخ", key="admin_date")
 
     admin_query = '''
@@ -168,7 +168,7 @@ def run_absence_module(conn):
     else:
         st.info("لا توجد حالات غياب مسجلة لهذا اليوم.")
 
-        # 📊 تحليل شهري للغياب
+    # 📊 تحليل شهري للغياب
     st.subheader("📊 تحليل شهري للغياب")
     selected_month = st.selectbox("اختر شهرًا", list(range(1, 13)))
     selected_year = st.selectbox("اختر السنة", list(range(2023, datetime.today().year + 1)))
@@ -183,7 +183,6 @@ def run_absence_module(conn):
     month_str = f"{selected_month:02d}"
     year_str = str(selected_year)
     monthly_stats = c.execute(monthly_query, (month_str, year_str)).fetchall()
-
     if monthly_stats:
         df_month = pd.DataFrame(monthly_stats, columns=["الصف", "عدد حالات الغياب"])
         st.bar_chart(df_month.set_index("الصف"))
@@ -220,4 +219,5 @@ def run_absence_module(conn):
             st.subheader("📌 التوصيات التربوية:")
             for rec in profile["recommendations"]:
                 st.markdown(f"- {rec}")
+
 
