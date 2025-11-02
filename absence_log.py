@@ -8,11 +8,6 @@ from advisor_engine import analyze_student_profile
 
 def run_absence_module(conn):
     c = conn.cursor()
-try:
-    c.execute("SELECT stage FROM students LIMIT 1")
-except sqlite3.OperationalError:
-    c.execute("ALTER TABLE students ADD COLUMN stage TEXT")
-    conn.commit()
 
     # ✅ إنشاء الجداول الضرورية
     c.execute('''CREATE TABLE IF NOT EXISTS absence_log (
