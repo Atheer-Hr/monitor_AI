@@ -173,8 +173,20 @@ def run_absence_module(conn):
     selected_month = st.selectbox("اختر شهرًا", list(range(1, 13)))
     selected_year = st.selectbox("اختر السنة", list(range(2023, datetime.today().year + 1)))
 
-    monthly_query = '''
+        monthly_query = '''
     SELECT class, COUNT(*) as total
     FROM absence_log
     WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
     GROUP BY class
+    ORDER BY total DESC
+    '''
+    month_str = f"{selected_month:02d}"
+    year_str = str(selected_year)
+    monthly_stats = c.execute(monthly_query, (month_str, year_str)).fetchall()
+
+    if monthly_stats:
+        df_month = pd.DataFrame(monthly_stats, columns=["الصف", "عدد حالات الغياب"])
+        st.bar_chart(df_month.set_index("الصف"))
+    else:
+        st.info("لا توجد بيانات غياب لهذا الشهر.")
+
